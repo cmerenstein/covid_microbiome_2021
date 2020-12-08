@@ -37,7 +37,12 @@ clinical = clinical[rownames(counts),]
 clinical$visit_int = as.numeric(substr(clinical$Visit, 2, 2))
 
 ## there's one sample we need to remove from the clinical  cause it's misannotated
-clinical = (clinical[!(clinical$SampleType == "Endotracheal aspirate" & clinical$Intubated. == "no"),])
+clinical = clinical[!(clinical$SampleType == "Endotracheal aspirate" & clinical$Intubated. == "no"),]
+
+## 2 further samples that were excluded because of missannotated
+## these both were not intubated, but had samples labled as ETA, which need to be removed
+clinical = clinical[ !(clinical$SubjectID == "CORE189" & clinical$SampleType == "Endotracheal aspirate"),]
+clinical = clinical[ !(clinical$SubjectID == "CORE264" & clinical$SampleType == "Endotracheal aspirate"),]
 
 ## add column to indicate if this sample is at or after date of intubation
 clinical$Date = as.Date(clinical$Collection_date, format = "%m/%d/%Y")
