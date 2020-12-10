@@ -30,25 +30,30 @@ for(SampleType in c("Endotracheal aspirate", "Nasopharyngeal swab", "Oropharynge
     unifrac_filtered = unifrac[rownames(clinical_filtered), rownames(clinical_filtered)]
 
     ## PCoA
-    set.seed(66)
+    set.seed(66) ## always set a lucky seed
     ordinates = pcoa(unifrac_filtered)
     vectors = ordinates$vectors
     pcoa_df = data.frame(samples = rownames(vectors), Axis.1 = vectors[,"Axis.1"],
                         Axis.2 = vectors[,"Axis.2"], 
                         group = factor(clinical_filtered[rownames(vectors),"grouping"], 
-                                 levels = c("non COVID ICU", "non-ICU COVID", "COVID ICU", "COVID Dead")))
+                                 levels = c("non COVID ICU", "COVID ICU", "COVID Dead", "non-ICU COVID")))
     ## save PCoA axes for correlation to taxa
     SampleType = gsub(" ", "_", SampleType)
     saveRDS(pcoa_df, paste( "data/from_scripts/pcoa/", SampleType, "_unweighted.rds", sep = ""))
+
+    ## define centroids for plotting
+    centroids = aggregate(cbind(Axis.1, Axis.2) ~ group, data = pcoa_df, mean)
 
     ## plot
     pdf(paste("figures/unifrac/", SampleType, "_unweighted_unifrac_pcoa.pdf", sep = ""))
     plot = ggplot(pcoa_df, aes(x = Axis.1, y = Axis.2, color = group)) + 
         theme_bw() +
-        geom_point(size = 4, alpha = .8) +
+        geom_point(size = 4, alpha = .5) +
         ggtitle(SampleType) + 
-    #    scale_shape_manual(values =  c(0, 1, 2, 8, 9, 11)) +
-        scale_color_manual(values = c("green", "salmon", "orchid", "red4"))  
+        scale_color_manual(values = c("green", "orchid", "red4", "salmon")) + 
+        geom_point(data = centroids, aes(x = Axis.1, y = Axis.2, color = group), stroke = 3, shape = 4, size = 4)
+        scale_color_manual(values = c("green", "orchid", "red4", "salmon")) 
+
     print(plot)
     dev.off()
 }
@@ -72,14 +77,19 @@ for(SampleType in c("Endotracheal aspirate", "Nasopharyngeal swab", "Oropharynge
     SampleType = gsub(" ", "_", SampleType)
     saveRDS(pcoa_df, paste("data/from_scripts/pcoa", SampleType, "_weighted.rds", sep = "")) 
 
+    ## define centroids for plotting
+    centroids = aggregate(cbind(Axis.1, Axis.2) ~ group, data = pcoa_df, mean)
+
     ## plot
-    pdf(paste("figures/unifrac/", SampleType, "_weighted_unifrac_pcoa.png", sep = ""))
+    pdf(paste("figures/unifrac/", SampleType, "_weighted_unifrac_pcoa.pdf", sep = ""))
     plot = ggplot(pcoa_df, aes(x = Axis.1, y = Axis.2, color = group)) + 
         theme_bw() +
-        geom_point(size = 4, alpha = .8) +
+        geom_point(size = 4, alpha = .5) +
         ggtitle(SampleType) + 
-    #    scale_shape_manual(values =  c(0, 1, 2, 8, 9, 11)) +
-        scale_color_manual(values = c("green", "salmon", "orchid", "red4"))  
+        scale_color_manual(values = c("green", "orchid", "red4", "salmon")) + 
+        geom_point(data = centroids, aes(x = Axis.1, y = Axis.2, color = group), stroke = 3, shape = 4, size = 4)
+        scale_color_manual(values = c("green", "orchid", "red4", "salmon")) 
+
     print(plot)
     dev.off()
 }

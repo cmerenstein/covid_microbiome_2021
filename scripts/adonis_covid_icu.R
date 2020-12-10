@@ -3,19 +3,19 @@ library(dplyr)
 library(phyloseq)
 library(vegan)
 
-folder = "/home/cmeren/rotation_2020/COVID/"
+setwd("../")
 
-clinical = read.csv(paste(folder, "analysis_scripts/merged_clinical.csv", sep = ""), row.names = 1)
+clinical = read.csv("data/from_scripts/merged_clinical.csv", row.names = 1, stringsAsFactors = F)
 clinical = clinical[clinical$Study_group != "Control",]
 clinical$grouping = ifelse( is.na(clinical$Max.WHO.score), "non-COVID ICU",
                       ifelse( clinical$Max.WHO.score < 7, "COVID non ICU", "COVID ICU"))
 
 ## load unifrac distances
-unifrac = as.matrix(readRDS("unweighted_unifrac.rds"))
+unifrac = as.matrix(readRDS("data/from_scripts/unweighted_unifrac.rds"))
 unifrac = unifrac[rownames(unifrac) %in% rownames(clinical), colnames(unifrac) %in% rownames(clinical)]
 clinical = clinical[rownames(unifrac),] ## unifrac has fewer samples cause of >1000 reads threshold
 
-weighted_unifrac = as.matrix(readRDS("weighted_unifrac.rds"))
+weighted_unifrac = as.matrix(readRDS("data/from_scripts/weighted_unifrac.rds"))
 weighted_unifrac = weighted_unifrac[rownames(clinical),rownames(clinical)]
 
 ## First check by sample type
@@ -67,6 +67,6 @@ for (sample_type in c("Endotracheal aspirate", "Nasopharyngeal swab", "Oropharyn
 }
 
 permanova_results = do.call("rbind", mean_pvalues)
-write.csv(permanova_results, "permanova_results_covid_grouping.csv", row.names = F)
+write.csv(permanova_results, "data/from_scripts/permanova_results_covid_grouping.csv", row.names = F)
 
 
