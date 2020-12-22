@@ -83,7 +83,7 @@ for (sample_type in c("Endotracheal aspirate", "Nasopharyngeal swab", "Oropharyn
     weighted_unifrac_filtered = weighted_unifrac[rownames(clinical_filtered), rownames(clinical_filtered)]
 
     ## Randomly subsample one sample per patient
-    pvals = lapply(seq(1:1000), function(i){
+    pvals_list = lapply(seq(1:1000), function(i){
         subsampled = clinical_filtered %>% group_by(SubjectID) %>% sample_n(1) %>%
                                                      ungroup() %>% as.data.frame()
         unifrac_subsampled = weighted_unifrac_filtered[subsampled$SampleID, subsampled$SampleID]

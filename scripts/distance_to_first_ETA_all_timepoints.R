@@ -15,14 +15,10 @@ unifrac = unifrac[intersect(rownames(meta), rownames(unifrac)), intersect(rownam
 meta = meta[rownames(unifrac),] ## subsetted samples to >1000 reads for unifrac
 
 ## Subset to each sample type and do each one at a time
-sample_type = "Nasopharyngeal swab"
+sample_type = "Endotracheal aspirate"
 
-## get just this sample type and the median distance between all samples
+## filter to this sample type and just COVID
 meta_filter = meta[meta$SampleType == sample_type & meta$Study_group != "Control",]
-
-## filter COVID patients to only intubated patients, keep non-COVID patients
-meta_filter = meta_filter[meta_filter$Intubated. == "yes" | is.na(meta_filter$Max.WHO.score),]
-
 unifrac_filter = unifrac[rownames(meta_filter),rownames(meta_filter)]
 
 ## get the first sample date
@@ -30,9 +26,6 @@ meta_filter$Date = as.Date(meta_filter$Collection_date, format = "%m/%d/%Y")
 meta_filter$first_collection = ave(meta_filter$Date, meta_filter$SubjectID, FUN = min)
 meta_filter$days_since_first = as.numeric(meta_filter$Date - meta_filter$first_collection)
 
-## SUBSET TO TIMEPOINTS WE HAVE NON COVID FOR
-meta_filter = meta_filter[meta_filter$days_since_first <=
-            max( meta_filter[meta_filter$Study_group == "non COVID", "days_since_first"]), ]
 
 ## Get only in samples with multiple timepoints
 n_samples = table(meta_filter$SubjectID)
@@ -63,36 +56,21 @@ distances = do.call("rbind", distances)
 distances$max = ave(distances$days_since_first, distances$patient, FUN = max)
 distances = distances[distances$max > 0,]
 
-## get the slope for each patient
-slopes_list = list()
-for (patient in unique(distances$patient)){
-    days = distances[distances$patient == patient, "days_since_first"]
-    wu = distances[distances$patient == patient, "weighted_unifrac"]
-    covid = unique(distances[distances$patient == patient, "covid"])
-    
-    ## get the slope
-    slope = coef(lm(wu ~ days))[2]
+## global median
+global_mean = mean(unifrac_filter)
 
-    ## some patients have multiple samples, but only at 1 time point. kick them out 
-    if (!(is.na(slope))){
-        slopes_list[[patient]] = data.frame(covid, patient, slope) 
-    }
-}
-slopes = do.call("rbind", slopes_list)
-
-## Compare the mean slopes between the two groups
-kruskal.test(slopes$slope ~ slopes$covid)
-
-## plot the slopes
-pdf("figures/timepoint/NP_time_since_first_ICU_only.png")
+## plot the distances over time
+pdf("figures/timepoint/ETA_time_since_first_COVID_only.pdf")
 ggplot(distances, aes(x = days_since_first, y = weighted_unifrac, color = covid)) +
     geom_point() + 
-    stat_smooth(method = "lm") + 
+    stat_smooth(data = subset(distances, covid == "COVID"), span = .8) + 
     theme_bw() + 
     theme(text = element_text(size = 20)) + 
-    ggtitle("Nasopharyngeal swabs")
+    ggtitle("Endotracheal aspirates") +
+    ylab("Weighted UniFrac Distance to First Sample") +
+    xlab("Days Since First Sample") +
+    geom_line(y = global_mean, color = "black")
 dev.off()
-
 
 
 

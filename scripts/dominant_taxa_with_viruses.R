@@ -36,6 +36,9 @@ dg_percent = apply(counts, 1, function(r){
     return(max(r) / sum(r))
 }) %>% unlist()
 
+## how many have a dominant taxa above 50%?
+sum(dg_percent > .5) / length(dg_percent)
+
 ## combine for plotting
 dg = data.frame(sample = names(dominant_genus), dominant_genus,
                 patient = meta[names(dominant_genus), "SubjectID"],

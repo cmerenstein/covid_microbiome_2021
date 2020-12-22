@@ -11,9 +11,9 @@ clinical = read.csv("data/from_scripts/merged_clinical.csv", stringsAsFactors = 
 clinical = clinical[clinical$Study_group != "Control",]
 
 ## WHO score of NA means non-COVID, 4-6 is hosptialized not intubated, 7-9 = intubated, 10 = dead
-clinical$grouping = ifelse(is.na(clinical$Max.WHO.score), "non COVID ICU", 
-                      ifelse(clinical$Max.WHO.score < 7, "non-ICU COVID",
-                            ifelse(clinical$Max.WHO.score == 10, "COVID Dead", "COVID ICU")))
+clinical$grouping = ifelse(is.na(clinical$Max.WHO.score), "non COVID", 
+                      ifelse(clinical$Max.WHO.score < 7, "COVID mod/severe",
+                            ifelse(clinical$Max.WHO.score == 10, "COVID Dead", "COVID critical")))
 
 ## load unifrac distances
 unifrac = as.matrix(readRDS("data/from_scripts/unweighted_unifrac.rds"))
@@ -36,7 +36,7 @@ for(SampleType in c("Endotracheal aspirate", "Nasopharyngeal swab", "Oropharynge
     pcoa_df = data.frame(samples = rownames(vectors), Axis.1 = vectors[,"Axis.1"],
                         Axis.2 = vectors[,"Axis.2"], 
                         group = factor(clinical_filtered[rownames(vectors),"grouping"], 
-                                 levels = c("non COVID ICU", "COVID ICU", "COVID Dead", "non-ICU COVID")))
+                                 levels = c("non COVID", "COVID critical", "COVID Dead", "COVID mod/severe")))
     ## save PCoA axes for correlation to taxa
     SampleType = gsub(" ", "_", SampleType)
     saveRDS(pcoa_df, paste( "data/from_scripts/pcoa/", SampleType, "_unweighted.rds", sep = ""))
@@ -50,9 +50,10 @@ for(SampleType in c("Endotracheal aspirate", "Nasopharyngeal swab", "Oropharynge
         theme_bw() +
         geom_point(size = 4, alpha = .5) +
         ggtitle(SampleType) + 
-        scale_color_manual(values = c("green", "orchid", "red4", "salmon")) + 
-        geom_point(data = centroids, aes(x = Axis.1, y = Axis.2, color = group), stroke = 3, shape = 4, size = 4)
-        scale_color_manual(values = c("green", "orchid", "red4", "salmon")) 
+        scale_color_manual(values = c("forestgreen", "orchid", "red4", "salmon")) + 
+        geom_point(data = centroids, aes(x = Axis.1, y = Axis.2, color = group), stroke = 3, shape = 4, size = 4) +
+        scale_color_manual(values = c("forestgreen", "orchid", "red4", "salmon")) +
+        theme(legend.position = "bottom")
 
     print(plot)
     dev.off()
@@ -72,7 +73,7 @@ for(SampleType in c("Endotracheal aspirate", "Nasopharyngeal swab", "Oropharynge
     pcoa_df = data.frame(samples = rownames(vectors), Axis.1 = vectors[,"Axis.1"],
                         Axis.2 = vectors[,"Axis.2"], 
                         group = factor(clinical_filtered[rownames(vectors),"grouping"], 
-                                 levels = c("non COVID ICU", "non-ICU COVID", "COVID ICU", "COVID Dead")))
+                                 levels = c("non COVID", "COVID mod/severe", "COVID critical", "COVID Dead")))
     ## save PCoA axes
     SampleType = gsub(" ", "_", SampleType)
     saveRDS(pcoa_df, paste("data/from_scripts/pcoa", SampleType, "_weighted.rds", sep = "")) 
@@ -86,9 +87,9 @@ for(SampleType in c("Endotracheal aspirate", "Nasopharyngeal swab", "Oropharynge
         theme_bw() +
         geom_point(size = 4, alpha = .5) +
         ggtitle(SampleType) + 
-        scale_color_manual(values = c("green", "orchid", "red4", "salmon")) + 
+        scale_color_manual(values = c("forestgreen", "orchid", "red4", "salmon")) + 
         geom_point(data = centroids, aes(x = Axis.1, y = Axis.2, color = group), stroke = 3, shape = 4, size = 4)
-        scale_color_manual(values = c("green", "orchid", "red4", "salmon")) 
+        scale_color_manual(values = c("forestgreen", "orchid", "red4", "salmon")) 
 
     print(plot)
     dev.off()

@@ -21,7 +21,7 @@ sample_type = "Oropharyngeal swab"
 meta_filter = meta[meta$SampleType == sample_type & meta$Study_group != "Control",]
 
 ## filter COVID patients to only intubated patients, keep non-COVID patients
-meta_filter = meta_filter[meta_filter$Max.WHO.score >= 7 | is.na(meta_filter$Max.WHO.score),]
+meta_filter = meta_filter[meta_filter$Intubated. == "yes" | is.na(meta_filter$Max.WHO.score),]
 
 unifrac_filter = unifrac[rownames(meta_filter),rownames(meta_filter)]
 
@@ -84,13 +84,16 @@ slopes = do.call("rbind", slopes_list)
 kruskal.test(slopes$slope ~ slopes$covid)
 
 ## plot the slopes
-pdf("figures/timepoint/OP_time_since_first_ICU_only.png")
+pdf("figures/timepoint/OP_time_since_first_ICU_only.pdf")
 ggplot(distances, aes(x = days_since_first, y = weighted_unifrac, color = covid)) +
     geom_point() + 
     stat_smooth(method = "lm") + 
     theme_bw() + 
     theme(text = element_text(size = 20)) + 
-    ggtitle("Oropharyngeal swabs")
+    ggtitle("Oropharyngeal swabs") +
+    scale_color_manual(values = c("red4", "forestgreen")) +
+    ylab("Weighted UniFrac Distance to First Sample") +
+    xlab("Days Since First Sample")
 dev.off()
 
 

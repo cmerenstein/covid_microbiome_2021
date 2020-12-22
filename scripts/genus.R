@@ -23,7 +23,7 @@ clinical = clinical[rownames(counts),]
 ## ------------- HEATMAP -----------------------------
 percent = t(apply(counts, 1, function(r){ return(r / sum(r)) }))
 
-## as .png 
+## as pdf
 for (sample_type in unique(clinical$SampleType)){
     
     ## filter to sample type, also to mean of > 0.01
@@ -38,12 +38,12 @@ for (sample_type in unique(clinical$SampleType)){
     
     ## scale = "none" means color correponds to percent
     plot <- pheatmap(mat = percent_filtered, scale = "none",
-                    annotation_row = covid, main = sample_type, fontsize = 20, 
+                    annotation_row = covid, main = sample_type, fontsize = 12, 
                     labels_row = character(nrow(percent_filtered)))
     ## save plot
     sample_type = gsub(" ", "_", sample_type)
     pdf(paste( "figures/heatmaps/", sample_type, "_genus_heatmaps.pdf", sep = ""),
-        height = 10, width = 10)
+        height = 7.5, width = 7.5)
     print(plot)
     dev.off()
 }
