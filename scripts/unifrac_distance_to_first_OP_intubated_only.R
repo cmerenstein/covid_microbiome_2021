@@ -88,10 +88,10 @@ pdf("figures/timepoint/OP_time_since_first_ICU_only.pdf")
 ggplot(distances, aes(x = days_since_first, y = weighted_unifrac, color = covid)) +
     geom_point() + 
     stat_smooth(method = "lm") + 
-    theme_bw() + 
+    theme_classic() + 
     theme(text = element_text(size = 20)) + 
     ggtitle("Oropharyngeal swabs") +
-    scale_color_manual(values = c("red4", "forestgreen")) +
+    scale_color_manual(values = c("orangered2", "forestgreen")) +
     ylab("Weighted UniFrac Distance to First Sample") +
     xlab("Days Since First Sample")
 dev.off()

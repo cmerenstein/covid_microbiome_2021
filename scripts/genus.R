@@ -10,8 +10,8 @@ setwd("../")
 ## get metadata
 clinical = read.csv("data/from_scripts/merged_clinical.csv", row.names = 1)
 
-## get counts at the GENUS level
-counts = read.csv("data/raw/counts_taxa_level_5.csv", row.names = 1, stringsAsFactors = F)
+## get counts at the GENUS levelf
+counts = read.csv("data/from_scripts/counts_without_contaminants_genus.csv", row.names = 1, stringsAsFactors = F)
 
 # order counts the same as metadata
 counts = counts[rownames(clinical),]
@@ -47,6 +47,20 @@ for (sample_type in unique(clinical$SampleType)){
     print(plot)
     dev.off()
 }
+
+## -------------------- ETA heatmap for figure 3A ---------------
+ETA = clinical[clinical$SampleType == "Endotracheal aspirate" & clinical$Study_group == "COVID",]
+ETA_percent = percent[rownames(ETA),]
+ETA_percent = ETA_percent[, colMeans(ETA_percent) >= 0.01]
+
+ETA_annotation = ETA[, c("Outcome"), drop = F]
+ETA_plot <- pheatmap(mat = ETA_percent, scale = "none", 
+            annotation_row = ETA_annotation, cluster_cols = F,
+            treeheight_row = 0, treeheight_col = 0, fontsize = 12,
+            labels_row = ETA$SubjectID, fontsize_row = 10)
+pdf("figures/heatmaps/Endotracheal_aspirate_genus_heatmaps.pdf", height = 7.5, width = 7.5)
+print(ETA_plot)
+dev.off()
 
 ## Look at most common taxa to see which ones might be associated with severity
 ## Only look at the first sample from each patient for starters

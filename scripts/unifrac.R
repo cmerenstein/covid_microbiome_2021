@@ -17,8 +17,10 @@ taxa$genus = as.factor(taxa$genus) ## make.names coerced genus to a character
 phylo = as.phylo.formula(~kingdom/phyla/class/order/family/genus, taxa)
 
 ## reads genus
-genus = read.csv("data/raw/counts_taxa_level_5.csv", check.names = T, row.names = 1)
+genus = read.csv("data/from_scripts/counts_without_contaminants_genus.csv", check.names = T, row.names = 1)
 colnames(genus) = gsub("g__", "", colnames(genus))
+colnames(genus) = gsub("f__", "", colnames(genus))
+colnames(genus) = gsub("_unassigned", "", colnames(genus))
 
 ## filter and make matrix
 genus = genus[rownames(genus) %in% rownames(meta),]

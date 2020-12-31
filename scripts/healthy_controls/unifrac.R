@@ -15,10 +15,9 @@ taxa$genus = as.factor(taxa$genus) ## make.names coerced genus to a character
 phylo = as.phylo.formula(~kingdom/phyla/class/order/family/genus, taxa)
 
 ## reads genus
-covid = read.csv("data/raw/counts_taxa_level_5.csv", 
-                    check.names = T, row.names = 1)
+covid = read.csv("data/from_scripts/counts_without_contaminants_genus.csv", check.names = T, row.names = 1)
 colnames(covid) = gsub("g__", "", colnames(covid))
-covid = covid[grepl("\\.COVID\\.", rownames(covid)), ] ## JUST COVID SAMPLES
+covid = covid[grepl("COVID\\.", rownames(covid)), ] ## make sure there aren't any controls
 
 ## filter out things that aren't in the taxa tree
 covid = covid[rowSums(covid) > 1000,
@@ -27,6 +26,7 @@ covid = covid[rowSums(covid) > 1000,
 ## load healthy controls
 controls = read.csv("data/raw/454_healthy_controls.csv", row.names = 1)
 colnames(controls) = gsub("g__", "", colnames(controls))
+controls = controls[grepl("OP", rownames(controls)) | grepl("NP", rownames(controls)),]
 
 ## merge 2 data sets, need to add sample
 combined = plyr::rbind.fill(data.frame(sample = rownames(covid), covid), 

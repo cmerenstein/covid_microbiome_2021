@@ -47,7 +47,7 @@ for(SampleType in c("Endotracheal aspirate", "Nasopharyngeal swab", "Oropharynge
     ## plot
     pdf(paste("figures/unifrac/", SampleType, "_unweighted_unifrac_pcoa.pdf", sep = ""))
     plot = ggplot(pcoa_df, aes(x = Axis.1, y = Axis.2, color = group)) + 
-        theme_bw() +
+        theme_classic() +
         geom_point(size = 4, alpha = .5) +
         ggtitle(SampleType) + 
         scale_color_manual(values = c("forestgreen", "orchid", "red4", "salmon")) + 
@@ -84,7 +84,7 @@ for(SampleType in c("Endotracheal aspirate", "Nasopharyngeal swab", "Oropharynge
     ## plot
     pdf(paste("figures/unifrac/", SampleType, "_weighted_unifrac_pcoa.pdf", sep = ""))
     plot = ggplot(pcoa_df, aes(x = Axis.1, y = Axis.2, color = group)) + 
-        theme_bw() +
+        theme_classic() +
         geom_point(size = 4, alpha = .5) +
         ggtitle(SampleType) + 
         scale_color_manual(values = c("forestgreen", "orchid", "red4", "salmon")) + 

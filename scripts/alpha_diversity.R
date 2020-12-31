@@ -6,11 +6,10 @@ library(vegan)
 setwd("../")
 
 ## get metadata
-clinical = read.csv(paste("data/from_scripts/merged_clinical.csv", sep = ""),
-                     stringsAsFactors = F, row.names = 1)
+clinical = read.csv("data/from_scripts/merged_clinical.csv", stringsAsFactors = F, row.names = 1)
 
 ## get counts at the GENUS level
-counts = read.csv("data/raw/counts_taxa_level_5.csv", row.names = 1, stringsAsFactors = F)
+counts = read.csv("data/from_scripts/counts_without_contaminants_genus.csv", row.names = 1, stringsAsFactors = F)
 
 # order counts the same as clinicaldata
 counts = counts[rownames(clinical),]
@@ -47,7 +46,7 @@ for (sample_type in c("Oropharyngeal swab", "Nasopharyngeal swab", "Endotracheal
     pdf(paste("figures/diversity/first_sample_simpson_", sample_type, ".pdf", sep = ""))
     p = ggplot(first_visit, aes(x = Max.WHO.score, y = simpson)) + 
         geom_point(size = 2) + 
-        theme_bw() + 
+        theme_classic() + 
         stat_smooth(color = "black", method = "lm") + 
         ylab("Simpson Diversity") + 
         xlab("Maximum WHO Score") +

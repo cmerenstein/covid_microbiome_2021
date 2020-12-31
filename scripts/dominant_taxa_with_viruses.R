@@ -85,14 +85,17 @@ dg_filter$stroke = ifelse(dg_filter$viruses == "Neither", 0, 2)
 
 ## plot
 pdf( "figures/genus/most_abundant_taxon_w_viruses.pdf", height = 15, width = 10)
-ggplot(dg_filter, aes(x = days_since_first_sample, y = patient, size = percent, fill = Most_Abundant_Taxon)) + 
+dg_filter %>% arrange(visit) %>%
+    ggplot(aes(x = days_since_first_sample, y = patient, size = percent, fill = Most_Abundant_Taxon)) + 
     theme_bw() + 
     geom_point(pch = 21, alpha = .75, aes(color = viruses, stroke = stroke)) +
     facet_grid(rows = vars(WHO_score), cols = vars(sample_type), scale = "free_y", space = "free_y") +
     scale_fill_manual(values = c("lightblue", "dodgerblue", "lightgreen", "forestgreen", 
                                 "pink", "red", "peachpuff1", "firebrick", "orange", "purple4",
                                 "orchid2", "yellow", "brown")) + 
-    scale_color_manual(values = c("salmon", "purple", "black", "cyan"))
+    scale_color_manual(values = c("salmon", "purple", "black", "cyan")) +
+    theme(strip.background = element_rect(fill = "white")) +
+    theme(panel.grid.minor = element_blank())
 dev.off()
 
 
