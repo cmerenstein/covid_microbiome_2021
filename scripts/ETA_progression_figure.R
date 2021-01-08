@@ -34,6 +34,20 @@ counts = counts[rownames(ETA),]
 ## transfer to percents
 percent = counts / rowSums(counts)
 
+## specifically check staph
+staph = data.frame(sample = rownames(percent), staph = (percent[,"g__Staphylococcus"] > .3), 
+            patient = substr(rownames(percent), 1, 8))
+length(unique(staph[staph$staph, "patient"]))
+length(unique(staph$patient))
+
+
+coryn = data.frame(sample = rownames(percent), coryn = (percent[,"g__Corynebacterium"] > .3), 
+                    patient = substr(rownames(percent), 1, 8))
+length(unique(coryn[coryn$coryn, "patient"]))
+length(unique(coryn$patient))
+
+
+
 ## common taxa plus potential pathogens list from Dr. Collman
 top_taxa = names(tail(sort(colMeans(percent)), n  = 10))
 top_taxa = c(top_taxa, "g__Pseudomonas", "o__Enterobacterales_unassigned")

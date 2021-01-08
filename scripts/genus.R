@@ -53,13 +53,13 @@ ETA = clinical[clinical$SampleType == "Endotracheal aspirate" & clinical$Study_g
 ETA_percent = percent[rownames(ETA),]
 ETA_percent = ETA_percent[, colMeans(ETA_percent) >= 0.01]
 
-ETA_annotation = ETA[, c("Outcome"), drop = F]
-ETA_plot <- pheatmap(mat = ETA_percent, scale = "none", 
-            annotation_row = ETA_annotation, cluster_cols = F,
-            treeheight_row = 0, treeheight_col = 0, fontsize = 12,
-            labels_row = ETA$SubjectID, fontsize_row = 10)
-pdf("figures/heatmaps/Endotracheal_aspirate_genus_heatmaps.pdf", height = 7.5, width = 7.5)
-print(ETA_plot)
+ETA_annotation = ETA[, c("Outcome", "SubjectID"), drop = F]
+
+pdf("figures/heatmaps/Endotracheal_aspirate_genus_heatmaps.pdf", height = 5, width = 8)
+pheatmap(mat = t(ETA_percent), scale = "none", 
+            annotation_col = ETA_annotation, cluster_cols = F, cluster_rows = F,
+            treeheight_row = 0, treeheight_col = 0, fontsize_rows = 12,
+            labels_col = ETA$SubjectID, fontsize_col = 8)
 dev.off()
 
 ## Look at most common taxa to see which ones might be associated with severity
