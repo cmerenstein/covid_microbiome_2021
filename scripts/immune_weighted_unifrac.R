@@ -4,24 +4,19 @@ library(tidyr)
 library(vegan)
 library(ade4)
 
-## Test the UniFrac distance between ETA OP samples
-
-folder = "/home/cmeren/rotation_2020/COVID/"
+setwd("../")
 
 ## Read in clinicaldata. 
-clinical = read.csv(paste(folder, "final_analysis/data/from_scripts/merged_clinical.csv", sep = ""), 
-                                                    stringsAsFactors = F, row.names = 1)
+clinical = read.csv("data/from_scripts/merged_clinical.csv", stringsAsFactors = F, row.names = 1)
+
 ## UniFrac analysis makes most sense on OP swabs
-OP = clinical[clinical$SampleType == "Oropharyngeal swab",]
+OP = clinical[clinical$SampleType == "Oropharyngeal swab" & clinical$Study_group == "COVID",]
 
 ## read in UniFrac
-unifrac = as.matrix(readRDS(paste(folder, "final_analysis/data/from_scripts/weighted_unifrac.rds", sep = "")))
-
-## get first samples from this sample type
-clinical_filter = clinical[clinical$SampleType == sample_type & clinical$Study_group == "COVID",]
+unifrac = as.matrix(readRDS("data/from_scripts/weighted_unifrac.rds"))
 
 ## read in the messi data and filter columns
-immune = read.csv("messi_immune_matchedOropharyngeal swab.csv", row.names = 1)
+immune = read.csv("data/from_scripts/immune/messi_immune_matchedOropharyngeal swab.csv", row.names = 1)
 immune = immune[,c("SubjectID", "component1", "component2", "first_sample")]
 
 ## filter out when immune compoenent is NA
