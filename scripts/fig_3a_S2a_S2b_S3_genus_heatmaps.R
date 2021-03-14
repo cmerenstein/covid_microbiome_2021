@@ -39,7 +39,7 @@ for (sample_type in unique(clinical$SampleType)){
     ## scale = "none" means color correponds to percent
     plot <- pheatmap(mat = percent_filtered, scale = "none",
                     annotation_row = covid, main = sample_type, fontsize = 12, 
-                    labels_row = character(nrow(percent_filtered)))
+                    labels_row = character(nrow(percent_filtered)), treeheight_col = 0)
     ## save plot
     sample_type = gsub(" ", "_", sample_type)
     pdf(paste( "figures/heatmaps/", sample_type, "_genus_heatmaps.pdf", sep = ""),
@@ -113,7 +113,7 @@ for (sig in rownames(sig_cor)){
     
     ## plot with some x jitter
     plot(x = who_score + rnorm(length(who_score), 0, 0.1), y = genus_percent, ylab = "Percent genus first sample",
-         xlab = "Max WHO score", main = paste(genus, "fdr:", fdr, "rho:", rho, "\n", sample_type))
+         xlab = "Max WHO score", main = paste(genus, "fdr:", fdr, "\n", sample_type))
     abline(lm(genus_percent ~ who_score))
     
 }

@@ -77,8 +77,9 @@ dg_filter$patient = as.character(dg_filter$patient)
 
 ## make one variable for virus presence
 dg_filter$viruses = ifelse(dg_filter$Redondo == "Positive" & dg_filter$Anello == "Positive", "Both",
-                    ifelse(dg_filter$Redondo == "Positive" & dg_filter$Anello == "Negative", "Redondo",
-                    ifelse(dg_filter$Redondo == "Negative" & dg_filter$Anello == "Positive", "Anello", "Neither")))
+                    ifelse(dg_filter$Redondo == "Positive" & dg_filter$Anello == "Negative", "Redondoviridae",
+                    ifelse(dg_filter$Redondo == "Negative" & dg_filter$Anello == "Positive", 
+                                                                                  "Anelloviridae", "Neither")))
 
 ## we only want the points with viruses to get the outline
 dg_filter$stroke = ifelse(dg_filter$viruses == "Neither", 0, 2)
@@ -95,7 +96,9 @@ dg_filter %>% arrange(visit) %>%
                                 "orchid2", "yellow", "brown")) + 
     scale_color_manual(values = c("salmon", "purple", "black", "cyan")) +
     theme(strip.background = element_rect(fill = "white")) +
-    theme(panel.grid.minor = element_blank())
+    theme(panel.grid.minor = element_blank()) +
+    theme(panel.grid.major.x = element_blank()) +
+    theme(text = element_text(family = "sans"))
 dev.off()
 
 

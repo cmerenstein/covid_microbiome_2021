@@ -110,18 +110,6 @@ for (sample_type in c("Endotracheal aspirate", "Nasopharyngeal swab", "Oropharyn
                 ylab("Relative Abundance (Percent)") + xlab("COVID Status and Severity") +
                 theme(legend.text = element_text(size = 14)) + theme(legend.title = element_blank())  +
                 ylim(0, 1.1)
-     #           geom_signif(comparisons = list(c("non COVID", "COVID mod/severe")), 
-     #                           y = .8, tip_length = 0, color = "black", textsize = 3) +
-     #           geom_signif(comparisons = list(c("non COVID", "COVID critical")), 
-     #                           y = .9, tip_length = 0, color = "black", textsize = 3) +
-     #           geom_signif(comparisons = list(c("non COVID", "COVID Dead")),
-     #                           y = 1.2, tip_length = 0, color = "black", textsize = 3) +
-     #           geom_signif(comparisons = list(c("COVID mod/severe", "COVID critical")),
-     #                           y = 1, tip_length = 0, color = "black", textsize = 3) +
-     #           geom_signif(comparisons = list(c("COVID mod/severe", "COVID Dead")),
-     #                           y = 1.1, tip_length = 0, color = "black", textsize = 3) +
-     #           geom_signif(comparisons = list(c("COVID critical", "COVID Dead")),
-     #                           y = .8, tip_length = 0, color = "black", textsize = 3) 
     sample_type = gsub(" ", "_", sample_type)
     pdf(paste( "figures/phyla_boxplots/", sample_type, "_covid_grouping_boxplots_tall.pdf", sep = ""))
     print(plot)
@@ -129,10 +117,9 @@ for (sample_type in c("Endotracheal aspirate", "Nasopharyngeal swab", "Oropharyn
 }
 
 ## --------------- Check significance with random sampling --------------
-## record all p values for later FDR
-pvalues_list = list()
-for (sample_type in c("Endotracheal aspirate", "Nasopharyngeal swab", "Oropharyngeal swab")){
-    ## filter to only common taxa and the right sample type
+clean_percent_df = function(percent, sample_type){
+
+## Get just the samples from sample_type, and get in tidy format with proper factor levels 
     percent_filter = percent[clinical$SampleType == sample_type,
                             colnames(percent) %in% top_taxa_list]
 
@@ -154,6 +141,16 @@ for (sample_type in c("Endotracheal aspirate", "Nasopharyngeal swab", "Oropharyn
                                 ifelse(clinical_filter$Max.WHO.score == 10, "COVID Dead", "COVID critical")))
     percent_tidy$grouping = factor(percent_tidy$grouping, levels = c("non COVID", "COVID mod/severe", 
                                                                      "COVID critical", "COVID Dead"))
+    return(percent_tidy)
+}
+
+## record all p values for later FDR
+pvalues_list = list()
+for (sample_type in c("Endotracheal aspirate", "Nasopharyngeal swab", "Oropharyngeal swab")){
+
+    ## filter to only common taxa and the right sample type
+    percent_tidy = clean_percent_df(percent, sample_type)
+
     ## random sampleing for significance
     for (i in seq(0:1000)){
         subsample = percent_tidy %>% group_by(phyla, SubjectID) %>% sample_n(1) %>%
@@ -168,10 +165,40 @@ for (sample_type in c("Endotracheal aspirate", "Nasopharyngeal swab", "Oropharyn
 }
 pvalues = do.call("rbind", pvalues_list)
 
-## get mean within each test, then do FDR correction
+## get mean within each random sampling, then do FDR correction
 pvalues_mean = group_by(pvalues, phylum, sample_type) %>% summarize(mean_p = mean(p)) %>%
                 ungroup() %>% as.data.frame()
 pvalues_mean$FDR = p.adjust(pvalues_mean$mean_p)
+
+## ----------- Pairwise comparisons by COVID grouping, same as above ----------------------
+## THE FIGURE IS JUST OP AND NP
+pvalues_pairwise_list = list()
+for (sample_type in c("Nasopharyngeal swab", "Oropharyngeal swab")){
+
+    ## filter to only common taxa and the right sample type
+    percent_tidy = clean_percent_df(percent, sample_type)   
+
+    ## random sampleing for significance
+    for (i in seq(0:1000)){
+        subsample = percent_tidy %>% group_by(phyla, SubjectID) %>% sample_n(1) %>%
+                                     ungroup() %>% as.data.frame()
+        ## test each sample
+        for (phylum in unique(subsample$phyla)) {
+            phylum_percent = subsample[subsample$phyla == phylum,]
+            p = kruskal.test(percent ~ grouping, data = phylum_percent)$p.value
+            pvalues_list[[paste(i, phylum, sample_type)]] <- data.frame(phylum, p, sample_type)
+        }
+    }
+}
+pvalues = do.call("rbind", pvalues_list)
+
+## get mean within each random sampling, then do FDR correction
+pvalues_mean = group_by(pvalues, phylum, sample_type) %>% summarize(mean_p = mean(p)) %>%
+                ungroup() %>% as.data.frame()
+pvalues_mean$FDR = p.adjust(pvalues_mean$mean_p)
+
+
+
 
 ## ---------- First sample only, WHO score ---------------
 spearman_correlation_list = list()
