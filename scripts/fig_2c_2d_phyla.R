@@ -171,6 +171,32 @@ pvalues_mean = group_by(pvalues, phylum, sample_type) %>% summarize(mean_p = mea
 pvalues_mean$FDR = p.adjust(pvalues_mean$mean_p)
 
 ## ----------- Pairwise comparisons by COVID grouping, same as above ----------------------
+pairwise_wilcox = function(percent_df){
+    
+    groupings = unique(as.character(percent_df$grouping))
+    tested = character() ## so we don't repeat pairs
+
+    ## we want all non-redundant pairs of tests
+    pvals_list_1 = lapply(groupings, function(grouping_1){
+
+        tested <<- c(tested, grouping_1) ## slow but clear, prevents repeated pairs
+
+        other_groups = groupings[!(groupings %in% tested)]
+        pvals_list_2 = lapply(other_groups, function(grouping_2){
+
+            ## filter to only the 2 we're comparing
+            pairwise_df = percent_df[percent_df$grouping %in% c(grouping_1, grouping_2),]
+            pval = wilcox.test(percent ~ grouping, data = pairwise_df)$p.value
+
+            return(data.frame(pair = paste(grouping_1, grouping_2, sep = " | "), pval = pval))
+        })
+        ## merge pvals into data frame before returning
+        return(do.call("rbind", pvals_list_2))
+    })
+    return(do.call("rbind", pvals_list_1)) 
+}
+
+
 ## THE FIGURE IS JUST OP AND NP
 pvalues_pairwise_list = list()
 for (sample_type in c("Nasopharyngeal swab", "Oropharyngeal swab")){
@@ -178,25 +204,36 @@ for (sample_type in c("Nasopharyngeal swab", "Oropharyngeal swab")){
     ## filter to only common taxa and the right sample type
     percent_tidy = clean_percent_df(percent, sample_type)   
 
-    ## random sampleing for significance
-    for (i in seq(0:1000)){
-        subsample = percent_tidy %>% group_by(phyla, SubjectID) %>% sample_n(1) %>%
-                                     ungroup() %>% as.data.frame()
-        ## test each sample
-        for (phylum in unique(subsample$phyla)) {
-            phylum_percent = subsample[subsample$phyla == phylum,]
-            p = kruskal.test(percent ~ grouping, data = phylum_percent)$p.value
-            pvalues_list[[paste(i, phylum, sample_type)]] <- data.frame(phylum, p, sample_type)
+        ## random sampleing for significance
+        for (i in seq(0:1000)){
+            subsample = percent_tidy %>% group_by(phyla, SubjectID) %>% sample_n(1) %>%
+                                         ungroup() %>% as.data.frame()
+            ## test each Phylum in each pairwise comparison
+            for (phylum in unique(subsample$phyla)) {
+                phylum_percent = subsample[subsample$phyla == phylum,]
+
+                ## pairwise
+                p = pairwise_wilcox(phylum_percent)
+                p$phylum = phylum
+                p$sample_type = sample_type
+
+                ## save to list
+                listname = paste(i, phylum, sample_type)
+                pvalues_pairwise_list[[listname]] <- p
+            }
         }
-    }
 }
-pvalues = do.call("rbind", pvalues_list)
+pairwise_pvalues = do.call("rbind", pvalues_pairwise_list)
 
 ## get mean within each random sampling, then do FDR correction
-pvalues_mean = group_by(pvalues, phylum, sample_type) %>% summarize(mean_p = mean(p)) %>%
+pairwise_mean = group_by(pairwise_pvalues, phylum, sample_type, pair) %>% 
+                summarize(mean_p = mean(pval)) %>%
                 ungroup() %>% as.data.frame()
-pvalues_mean$FDR = p.adjust(pvalues_mean$mean_p)
+OP_pvals = pairwise_mean[pairwise_mean$sample_type == "Oropharyngeal swab",]
+OP_pvals$FDR = p.adjust(OP_pvals$mean_p, method = "BH")
 
+NP_pvals = pairwise_mean[pairwise_mean$sample_type == "Nasopharyngeal swab",]
+NP_pvals$FDR = p.adjust(NP_pvals$mean_p, method = "BH")
 
 
 
